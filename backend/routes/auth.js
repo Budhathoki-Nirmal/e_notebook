@@ -5,11 +5,11 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
-const JWT_SECRET = "AuthenticationToken";
-// const { findOne } = require('../models/User');
+var fetchuser = require('../middleware/fetchuser');
+const JWT_SECRET = 'AuthenticationToken';
 
 
-//create a user using: POST "/api/auth/createuser"
+// ROUTE-1 create a user using: POST "/api/auth/createuser"
 router.post('/createuser', [
   body('name', 'Enter Valid Name').isLength({ min: 3 }),
   body('email', 'Enter Valid Email').isEmail(),
@@ -49,9 +49,9 @@ router.post('/createuser', [
     res.status(500).send("Some errror occured");
 
   }
-})
+});
 
-//Authenticate a user using: POST "/api/auth/login"
+// ROUTE-2 Authenticate a user using: POST "/api/auth/login"
 router.post('/login', [
   body('email', 'Enter Valid Email').isEmail(),
   body('password', 'Password never blank').exists(),
@@ -63,7 +63,7 @@ router.post('/login', [
   //retrieve email and password from req.body
   const { email, password } = req.body;
   try {
-    let user = await User.findOne({email});
+    let user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ errors: 'Please enter valid credentials' });
     }
@@ -82,5 +82,20 @@ router.post('/login', [
     console.error(error.message);
     res.status(500).send("Internal errror occured");
   }
+});
+
+// ROUTE-3 Fetch user detail using: POST "/api/auth/getuser" login required
+
+router.post('/getuser', fetchuser, async (req, res) => {
+
+  try {
+    userId = req.user.id;
+    const user = await User.findById(userId).select("-password")
+    res.send(user)
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal errror occured");
+  }
 })
+
 module.exports = router
