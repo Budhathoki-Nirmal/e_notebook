@@ -59,4 +59,17 @@ router.put('/updatenotes/:id', fetchuser, async (req, res) => {
     res.json({notes});
 })
 
+//ROUTE-4 Delete notes: PUT "/api/notes/deletenotes"
+router.delete('/deletenotes/:id', fetchuser, async (req, res) => {
+
+    //find the to be updated and update it
+    let notes = await Notes.findById(req.params.id);
+    if (!notes) { return res.status(404).send("Not Found") }
+    if (notes.user.toString() !== req.user.id) {
+        return res.status(401).send("Not Allowed")
+    }
+    notes=await Notes.findByIdAndDelete(req.params.id)
+    res.json({notes});
+})
+
 module.exports = router
